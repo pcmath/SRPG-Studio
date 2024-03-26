@@ -24,6 +24,9 @@ var AoeItemTerrainUse = defineObject(BaseItemUse,
 		if(this._transformType == null) {
 			return MoveResult.END;
 		}
+		if(this._itemUseParent.damageCalculation) {
+			return MoveResult.CONTINUE;
+		}
 		var indexArray = AoeRangeIndexArray.getEffectRangeItemIndexArray(this._targetPos.x, this._targetPos.y, this._item, this._itemTargetInfo.unit);
 		var x, y, terrain, transformData, handle;
 		for(var i = 0, count = indexArray.length; i < count; i++) {
