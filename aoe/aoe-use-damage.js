@@ -41,6 +41,7 @@ var AoeItemDamageUse = defineObject(BaseItemUse,
 		this._prepareData();
 		var generator;
 		this._itemUseParent = itemUseParent;
+		this._itemUseParent.damageCalculation = true;
 		this._itemTargetInfo = itemUseParent.getItemTargetInfo();
 		this._targetPos = this._itemTargetInfo.targetPos;
 		this._itemUseParent._AoeItemExp = 0;
@@ -239,10 +240,10 @@ var AoeItemDamageUse = defineObject(BaseItemUse,
 			}
 			this._itemUseParent._AoeItemExp += AoeCalculator.getExp(unit, targetUnit, damagePoint);
 		}
+		this._itemUseParent.damageCalculation = false;
 		this.changeCycleMode(AoeItemUseMode.DAMAGE);
 		this._dynamicEvent.executeDynamicEvent();
 		return MoveResult.CONTINUE;
-
 	},
 
 	moveDamage: function() {
