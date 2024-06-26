@@ -22,6 +22,11 @@ var AoeDictionary = {
 		coordinateArray: [[1, 0], [0, 1], [-1, 0], [0, -1]]
 	},
 
+	"knight": {
+		name: "Knight",
+		coordinateArray: [[2,1], [2,-1], [1,2], [1,-2], [-1,2], [-1,-2], [-2,1], [-2,-1]]
+	},
+
 	"cross": {
 		name: "Cross",
 		coordinateArray: [[0,0], [1, 0], [0, 1], [-1, 0], [0, -1]]

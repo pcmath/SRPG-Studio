@@ -13,6 +13,9 @@ AoeCalculator = {
 		var activeStatus = SupportCalculator.createTotalStatus(active);
 		var passiveStatus = SupportCalculator.createTotalStatus(passive);
 		var weapon = this.getWeapon(item, active);
+		if(weapon == null) {
+			return 0;
+		}
 		var isCritical = false;
 		var trueHitValue = 0;
 		return DamageCalculator.calculateDamage(active, passive, weapon, isCritical, activeStatus, passiveStatus, trueHitValue);

@@ -23,6 +23,9 @@ AoeParameterInterpreter = {
 	},
 
 	getUseArray: function(item) {
+		if(item.custom.aoe.useArray != null) {
+			return eval(item.custom.aoe.useArray);
+		}
 		return [AoeItemDamageUse, AoeItemTerrainUse];
 	}
 };
