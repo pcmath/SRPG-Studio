@@ -4,7 +4,7 @@ Up to date translation of O-To's plugin is available: https://github.com/Anarch1
 Original plugin: O-To
 Modified version: PCMath
 
-example custom parameter:
+example custom parameter for AoE item:
 
 {
 	weapon: 4,
@@ -20,3 +20,4 @@ example custom parameter:
 
 adjacent selection, and line3 Aoe shape
 The weapon will override to the specified Id if provided.
+Set the item keyword to "AOE"
