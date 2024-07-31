@@ -1,3 +1,7 @@
+/*
+Item selection object for selection phase
+This is when the player uses the AoE item and must select a tile
+*/
 var AoeItemSelection = defineObject(BaseItemSelection,
 {
 	enterItemSelectionCycle: function(unit, item) {

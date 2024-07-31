@@ -20,4 +20,7 @@ example custom parameter for AoE item:
 
 adjacent selection, and line3 Aoe shape
 The weapon will override to the specified Id if provided.
-Set the item keyword to "AOE"
+Set the item keyword to "AOE".
+You can view and add AoE shapes in the aoe-dictionary.
+Please note that skills are not passed from the override weapon.
+The z_addon folder needs to be after the aoe scripts in reading order

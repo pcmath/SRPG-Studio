@@ -55,9 +55,9 @@ var AoeEffectRangePosSelector = defineObject(PosSelector,
 		var pos, indexArray, targetList, targetUnit, i, count;
 		pos = this.getSelectorPos();
 		indexArray = AoeRangeIndexArray.getEffectRangeItemIndexArray(this._posCursor.getX(), this._posCursor.getY(), this.item, this._unit);
-		//targetList = AoeItemUse.getTargetList(indexArray, this.item);
-		//count = targetList.length;
-		return null;
+		targetList = AoeItemDamageUse.getTargetList(indexArray, this.item);
+		count = targetList.length;
+		this._posMenu._targetList = targetList;
 		if(count == 0) {
 			return null;
 		}

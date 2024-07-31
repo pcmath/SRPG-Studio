@@ -114,7 +114,7 @@ var AoeItemAI = defineObject(BaseItemAI,
 				}
 				continue;
 			}
-			damage = AoeCalculator.getDamage(item, unit, targetUnit);
+			damage = AoeCalculator.calculateDamage(item, unit, targetUnit);
 			if(! FilterControl.isBestUnitTypeAllowed(unit.getUnitType(), targetUnit.getUnitType(), filter)) {
 				totalDamage += damage;
 				enemyTarget = true;

@@ -1,4 +1,6 @@
-//if a function is passed as weapon, it should be able to handle a false unit so that the item info can work.
+/*
+The parameter interpreter reads the custom parameters and transforms them into objects to be used by the plugin
+*/
 AoeParameterInterpreter = {
 	_getObjectRangeType: function(object) {
 		return object.rangeType;
@@ -13,9 +15,10 @@ AoeParameterInterpreter = {
 	},
 
 	getWeapon: function(item, unit) {
+		//if a function is passed as weapon, it should handle a false unit so that the item info can work.
 		if(item.custom.aoe.weapon != null) {
 			if(typeof item.custom.aoe.weapon == "function") {
-				return item.custom.aoe.weapon(unit)
+				return item.custom.aoe.weapon(unit); 
 			}
 			return root.getBaseData().getWeaponList().getDataFromId(item.custom.aoe.weapon);
 		}

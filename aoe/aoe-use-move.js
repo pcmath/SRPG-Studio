@@ -1,4 +1,4 @@
-var AoeItemMoveUse = defineObject(BaseItemUse,
+var AoeItemMoveUse = defineObject(BaseAoeItemUse,
 {
 	_dynamicEvent: null,
 	_targetPos: null,

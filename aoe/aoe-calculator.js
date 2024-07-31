@@ -9,34 +9,34 @@ AoeCalculator = {
 		return AbilityCalculator.getPower(unit, this.getWeapon(item, unit));
 	},
 
-	getDamage: function(item, active, passive) {
+	calculateDamage: function(item, active, passive) {
 		var activeStatus = SupportCalculator.createTotalStatus(active);
 		var passiveStatus = SupportCalculator.createTotalStatus(passive);
 		var weapon = this.getWeapon(item, active);
+		var isCritical = false;
 		if(weapon == null) {
 			return 0;
 		}
-		var isCritical = false;
 		var trueHitValue = 0;
 		return DamageCalculator.calculateDamage(active, passive, weapon, isCritical, activeStatus, passiveStatus, trueHitValue);
 	},
 
-	finalizeDamage: function(item, active, passive, damage) {
-		var value = AttackEvaluator.ActiveAction._getDamageGuardValue({
-				unitSelf: active,
-				weapon: this.getWeapon(item, active)
-			}, {
-				unitSelf: passive
-			}, {
-			}, {
-				skillArrayPassive: []
-			}
-		);
-		if (value !== -1) {
-			value = 100 - value;
-			damage = Math.floor(damage * (value / 100));
+	calculateAttackEntry: function(active, passive, item) {
+		var evaluatorArray = []; //other evaluators depend on their parent so we can't call NormalAttackOrderBuilder._configureEvaluator
+		evaluatorArray.appendObject(AttackEvaluator.HitCritical);
+		evaluatorArray.appendObject(AttackEvaluator.ActiveAction);
+		evaluatorArray.appendObject(AttackEvaluator.PassiveAction);
+		//NormalAttackOrderBuilder._configureEvaluator(evaluatorArray);
+		var attackEntry = AttackOrder.createAttackEntry();
+		var virtualActive = VirtualAttackControl.createVirtualAttackUnit(active, passive, true, {isCounterattack:false});
+		virtualActive.weapon = this.getWeapon(item, active);
+		var virtualPassive = VirtualAttackControl.createVirtualAttackUnit(passive, active, false, {isCounterattack:false});
+		attackEntry.isSrc = true;
+		attackEntry.isFirstAttack = true;
+		for(var i = 0, count = evaluatorArray.length; i < count; i++) {
+			evaluatorArray[i].evaluateAttackEntry(virtualActive, virtualPassive, attackEntry);
 		}
-		return damage;
+		return attackEntry;
 	},
 
 	getHit: function(item, active, passive) {
@@ -44,11 +44,6 @@ AoeCalculator = {
 		var passiveSupport = SupportCalculator.createTotalStatus(active);
 		var weapon = this.getWeapon(item, active);
 		return HitCalculator.calculateHit(active, passive, weapon, activeSupport, passiveSupport);
-	},
-
-	isHit: function(item, active, passive) {
-		var percent = this.getHit(item, active, passive);
-		return Probability.getProbability(percent);
 	},
 
 	getWeapon: function(item, unit) {
@@ -60,6 +55,9 @@ AoeCalculator = {
 	},
 
 	getExp: function(active, passive, damage) {
+		if(!damage) {
+			damage = 0;
+		}
 		var data = StructureBuilder.buildAttackExperience();
 		data.active = active;
 		data.activeHp = 1;

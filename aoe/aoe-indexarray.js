@@ -1,3 +1,7 @@
+/*
+This part handles the creation of the AoE index array from a dictionary input
+Essentially, this is transforming a set of relative coordinates into map coordinates
+*/
 var AoeRangeIndexArray = {
 	getEffectRangeItemIndexArray: function(x, y, item, unit) {
 		var effectRangeType = AoeParameterInterpreter.getEffectRangeType(item);

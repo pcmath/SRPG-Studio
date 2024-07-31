@@ -46,7 +46,7 @@ TransformData = {
 	}
 }
 
-var AoeItemTerrainUse = defineObject(BaseItemUse,
+var AoeItemTerrainUse = defineObject(BaseAoeItemUse,
 {
 	_dynamicEvent: null,
 	_targetPos: null,
@@ -116,7 +116,5 @@ var AoeItemTerrainUse = defineObject(BaseItemUse,
 	},
 
 	drawMainUseCycle: function() {
-		//var mode = this.getCycleMode();
-		//var result = MoveResult.CONTINUE;
 	}
 });
