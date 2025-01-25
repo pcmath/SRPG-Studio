@@ -47,10 +47,6 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 		return EnterResult.OK;
 	},
 	
-	_drawFlow: function() {
-		this._damageHitFlow.drawDamageHitFlowCycle();
-	},
-	
 	_isLosted: function(unit) {
 		return unit.getHp() <= 0;
 	},
@@ -71,13 +67,6 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 		}
 		unit.setHp(0);
 		DamageControl.setDeathState(unit);
-	},
-
-	moveUseAfter: function() {
-		if(this._dynamicEvent.moveDynamicEvent() == MoveResult.END) {
-			this.changeCycleMode(AoeItemUseMode.END);
-		}
-		return MoveResult.CONTINUE;
 	},
 
 	moveMainUseCycle: function() {
@@ -122,9 +111,6 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 		else if (mode === AoeItemUseMode.ERASE) {
 			this.drawErase();
 		}
-		else if (mode === AoeItemUseMode.FLOW) {
-			this.drawFlow();
-		}
 	},
 
 	_moveEvent: function() {
@@ -150,7 +136,7 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 		var targetUnit;
 		var soundHandle = root.querySoundHandle('damage');
 		var anime = root.queryAnime('easydamage');
-		var targetArray = this.getTargetList(indexArray, item);
+		var targetArray = this.getTargetList(indexArray);
 		var x, y, pos, entry;
 		for(var i = 0, count = targetArray.length; i < count; i++) {
 			targetUnit = targetArray[i];		
@@ -346,19 +332,6 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 			unitRenderParam.alpha = alpha;
 			UnitRenderer.drawScrollUnit(unit, x, y, unitRenderParam);
 		}
-	},
-	
-	drawFlow: function() {
-		if( this._damageHitFlow != null) {
-			this._damageHitFlow.drawDamageHitFlowCycle();
-		}
-	},
-
-	getUnitTypeAllowed: function(unit, targetUnit) {
-		if( FilterControl.isReverseUnitTypeAllowed(unit, targetUnit) === false ) {
-			return true;
-		}
-		return false;
 	},
 
 	potencyArtist: {
