@@ -7,8 +7,8 @@ Modified version: PCMath
 example custom parameter for AoE item:
 
 {
-	weapon: 4,
 	aoe: {
+		weapon: 4,
 		selectionRange: {
 			rangeType: "adjacent"
 		},
