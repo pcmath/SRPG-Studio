@@ -24,7 +24,7 @@ var AoeItemStatusUse = defineObject(BaseAoeItemUse,
 		if(this._itemUseParent.damageCalculation) {
 			return MoveResult.CONTINUE;
 		}
-		var indexArray = AoeRangeIndexArray.getEffectRangeItemIndexArray(this._targetPos.x, this._targetPos.y, item, this._itemTargetInfo.unit);
+		var indexArray = AoeRangeIndexArray.getEffectRangeItemIndexArray(this._targetPos.x, this._targetPos.y, this._item, this._itemTargetInfo.unit);
 		var state = this._state;
 		var targetArray = this.getTargetList(indexArray);
 		for(var i = 0, count = targetArray.length; i < count; i++) {
