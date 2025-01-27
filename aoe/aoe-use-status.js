@@ -11,7 +11,7 @@ var AoeItemStatusUse = defineObject(BaseAoeItemUse,
 		this._itemUseParent = itemUseParent;
 		this._itemTargetInfo = itemUseParent.getItemTargetInfo();
 		this._item = this._itemTargetInfo.item;
-		this._state = root.getBaseData().getStateList().getDataFromId(item.custom.aoe.stateId);
+		this._state = root.getBaseData().getStateList().getDataFromId(this._item.custom.aoe.stateId);
 		this._targetPos = this._itemTargetInfo.targetPos;
 	},
 	
