@@ -1,0 +1,3 @@
+This is a list of recomended plugins that vibe well with this AoE plugin.
+FotF_AllowItemAsWeapon -> display AoE items as attack option instead of item use.
+https://github.com/SirFrancisOfTheFilth/SirFrancisOfTheFilth/blob/main/Plugins/Engine%20Mechanics/FotF_AllowItemAsWeapon.js
