@@ -1,3 +1,8 @@
+/*
+This add on makes tooltips to see the damage for all units.
+It requires the AoeMaterial folder to be placed in your project's Material folder.
+*/
+
 AoePosMenuTooltipOptions = {
 	materialFolder: "AoeMaterial",
 	dmgNumber: "smallnumber2.png",
