@@ -11,13 +11,21 @@ AoeCalculator = {
 
 	calculateDamage: function(item, active, passive) {
 		var activeStatus = SupportCalculator.createTotalStatus(active);
-		var passiveStatus = SupportCalculator.createTotalStatus(passive);
 		var weapon = this.getWeapon(item, active);
-		var isCritical = false;
+		return this.calculateActiveDamage(item, active, passive, activeStatus, weapon);
+	},
+
+	calculateActiveDamage: function(item, active, passive, activeStatus, weapon) {
+		var passiveStatus = SupportCalculator.createTotalStatus(passive);
+		return calculateDamageFinal(item, weapon, active, passive, activeStatus, passiveStatus);
+	},
+
+	calculateDamageFinal: function(item, weapon, active, passive, activeStatus, passiveStatus) {
 		if(weapon == null) {
 			return 0;
 		}
 		var trueHitValue = 0;
+		var isCritical = false;
 		return DamageCalculator.calculateDamage(active, passive, weapon, isCritical, activeStatus, passiveStatus, trueHitValue);
 	},
 

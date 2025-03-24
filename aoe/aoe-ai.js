@@ -28,16 +28,15 @@ CombinationCollector.Item._makePosCombination = function(moveEntry, selectionArr
 }
 
 
-CombinationCollector.Item._finishAoeCombination = function(misc, selectionArray) {
+CombinationCollector.Item._finishAoeCombination = function(misc, selectionArray, rangeMetrics) {
 	var i, j, indexArray, list, targetUnit, targetCount, score, combination, aggregation;
 	var unit = misc.unit;
 	var filter =  FilterControl.getReverseFilter(unit.getUnitType());
 	var filterNew = this._arrangeFilter(unit, filter);
 	var listArray = this._getTargetListArray(filterNew, misc);
 	var listCount = listArray.length;
-	var rangeMetrics = AoeCalculator.getRangeMetrics(misc.item);
-	//First, gather unique positions
-	var uniqueIndexArray = []; //Remove positions that repeat
+	var checkedPositions = [];
+	var uniqueIndexArray = [];
 	for (i = 0; i < listCount; i++) {
 		list = listArray[i];
 		targetCount = list.getCount();
@@ -51,7 +50,7 @@ CombinationCollector.Item._finishAoeCombination = function(misc, selectionArray)
 				continue;
 			}
 			indexArray = IndexArray.createRangeIndexArray(targetUnit.getMapX(), targetUnit.getMapY(), rangeMetrics);
-			pushUniqueValues(uniqueIndexArray, indexArray);
+			pushUniqueValues(uniqueIndexArray, indexArray, checkedPositions);
 		}
 	}
 	misc.indexArray = uniqueIndexArray;
@@ -62,28 +61,25 @@ CombinationCollector.Item._finishAoeCombination = function(misc, selectionArray)
 	for(var k = 0; k < moveCount; k++) {
 		this._makePosCombination(moveArray[k], selectionArray, misc);
 	}
+	AoeItemAI._statusRegister = [];
 };
 
-pushUniqueValues = function(mainArray, pushedArray) {
-	var isUnique;
+pushUniqueValues = function(mainArray, pushedArray, checkedArray) {
 	for(var i = 0; i < pushedArray.length; i++) {
-		isUnique = true;
-		for(var j = 0; j < mainArray.length && isUnique; j++){
-			if(pushedArray[i] === mainArray[j]) {
-				isUnique = false;
-			}
+		if(checkedArray[pushedArray[i]]) {
+			continue;
 		}
-		if(isUnique) {
-			mainArray.push(pushedArray[i]);
-		}
+		checkedArray[pushedArray[i]] = true;
+		mainArray.push(pushedArray[i]);
 	}
 }
 
 CombinationCollector.Item._setAoeCombination = function(misc) {
-	var filter, rangeValue, rangeType, rangeMetrics;
+	var filter, rangeValue, rangeType;
 	var item = misc.item;
 	var rangeType = AoeParameterInterpreter.getSelectionRangeType(item);
-	this._finishAoeCombination(misc, AoeDictionary[rangeType].coordinateArray);
+	var rangeMetrics = AoeCalculator.getRangeMetrics(misc.item);
+	this._finishAoeCombination(misc, AoeDictionary[rangeType].coordinateArray, rangeMetrics);
 };
 
 var AoeItemAI = defineObject(BaseItemAI,
@@ -95,18 +91,20 @@ var AoeItemAI = defineObject(BaseItemAI,
 		var effectRangeType = AoeParameterInterpreter.getEffectRangeType(item);
 		var indexArray = AoeRangeIndexArray.getEffectRangeIndexArray(combination.targetPos.x, combination.targetPos.y, effectRangeType, x, y);
 		var targetList = AoeItemDamageUse.getTargetList(indexArray, item);
-		var count = targetList.length;
 		var totalDamage = 0;
 		var score = 30;	//Base AI score gives +Hit/5 to score and bonus depending on HP% up to 10
 		var filter = FilterControl.getReverseFilter(unit.getUnitType());
-		var targetUnit, damage;
+		var targetUnit, damage, targetId;
 		var enemyTarget = false;
+		var unitStatus = SupportCalculator.createTotalStatus(unit);
+		var weapon = AoeCalculator.getWeapon(item, unit);
 		filter = BaseCombinationCollector._arrangeFilter(unit, filter);
 		if(count == 0) {
 			return -1;
 		}
-		for(var i = 0; i < count; i++)	{
+		for(var i = 0, count = targetList.length; i < count; i++) {
 			targetUnit = targetList[i];
+			targetId = targetUnit.getId();
 			if(targetUnit == unit) {
 				//dealing with self is complicated because self moves.
 				if(count == 1) {
@@ -114,7 +112,10 @@ var AoeItemAI = defineObject(BaseItemAI,
 				}
 				continue;
 			}
-			damage = AoeCalculator.calculateDamage(item, unit, targetUnit);
+			if(this._statusRegister[targetId] == null) {
+				this._statusRegister[targetId] = SupportCalculator.createTotalStatus(targetUnit);
+			}
+			damage = AoeCalculator.calculateDamageFinal(item, weapon, unit, targetUnit, unitStatus, this._statusRegister[targetId]);
 			if(! FilterControl.isBestUnitTypeAllowed(unit.getUnitType(), targetUnit.getUnitType(), filter)) {
 				totalDamage += damage;
 				enemyTarget = true;
@@ -125,7 +126,7 @@ var AoeItemAI = defineObject(BaseItemAI,
 			}
 
 		}
-		if(!enemyTarget) {
+		if(!enemyTarget) { //if there are no enemy targets then don't use AOE item.
 			return -1;
 		}
 		score += Miscellaneous.convertAIValue(totalDamage);
