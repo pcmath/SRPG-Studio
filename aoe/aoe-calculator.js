@@ -17,7 +17,7 @@ AoeCalculator = {
 
 	calculateActiveDamage: function(item, active, passive, activeStatus, weapon) {
 		var passiveStatus = SupportCalculator.createTotalStatus(passive);
-		return calculateDamageFinal(item, weapon, active, passive, activeStatus, passiveStatus);
+		return this.calculateDamageFinal(item, weapon, active, passive, activeStatus, passiveStatus);
 	},
 
 	calculateDamageFinal: function(item, weapon, active, passive, activeStatus, passiveStatus) {
