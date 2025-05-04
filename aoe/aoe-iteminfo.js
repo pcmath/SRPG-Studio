@@ -1,17 +1,101 @@
+/*
+The series sum formula is 		n*(n+1)/2
+Therefore the tile graphics height	h = n*(n+1)/2
+Quadratic equation 			0 = n^2+n-2*h
+Quadratic formula			n=(sqrt(1+8*h)-1)/2
+*/
+
+AoeItemInfoOptions = {
+	materialFolder: "AoeMaterial",
+	image: "til2e.png",
+	sentenceCount: 3 // number of sentences reserved to draw the tiles
+}
+
+function addBounds(arr1, arr2) {
+	var result = [[0, 0],[0, 0]];
+	for (var i = 0; i < 2; i++) {
+		for (var j = 0; j < 2; j++) {
+			result[i][j] = arr1[i][j] + arr2[i][j];
+		}
+	}
+	return result;
+}
+
+function getCoordinateBounds(coords) {
+	var result = [[0,0],[0,0]]
+	if (!coords.length) {
+		return result;
+	}
+	for (var i = 1, count = coords.length; i < count; i++) {
+		var x = coords[i][0]; var y = coords[i][1];
+		result[0][0] = Math.min(result[0][0], x); result[1][0] = Math.max(result[1][0], x);
+		result[0][1] = Math.min(result[0][1], y); result[1][1] = Math.max(result[1][1], y);
+	}
+	return result;
+}
+
 var AoeItemInfo = defineObject(BaseItemInfo,
-{	
+{
+	_drawTile: true,
+
+	setInfoItem: function(item) {
+		this._item = item;
+		this._typeEffect = AoeParameterInterpreter.getEffectRangeType(this._item);
+		this._typeSelect = AoeParameterInterpreter.getSelectionRangeType(this._item);
+		this._arrayEffect = AoeDictionary[this._typeEffect].coordinateArray;
+		this._arraySelect = AoeDictionary[this._typeSelect].coordinateArray;
+		if(typeof(this._arrayEffect) == "function" || typeof(this._arraySelect) == "function") {
+			this._drawTile = false;
+			return ;
+		}
+		this._tileGraphics = root.getMaterialManager().createImage(
+			AoeItemInfoOptions.materialFolder,
+			AoeItemInfoOptions.image
+		);
+		if(!this._tileGraphics) {
+			this._drawTile = false;
+			return ;
+		}
+		var span = AoeCalculator.getRangeMetrics(this._item).endRange * 2 + 1;
+		var spaceX = ItemRenderer.getItemWindowWidth();
+		var spaceY = AoeItemInfoOptions.sentenceCount * ItemInfoRenderer.getSpaceY();
+		var maxTileSize = this._getMaxTileSize();
+		this._tileSize = Math.min(Math.floor(spaceX / span), Math.floor(spaceY / span), maxTileSize);
+		if(this._tileSize <= 0) {
+			this._drawTile = false;
+			return ;
+		}
+		this._setTileHeight();
+	},
+
+	_getMaxTileSize: function() {
+		var h = this._tileGraphics.getHeight();
+		return Math.floor((Math.sqrt(1+8*h)-1)/2)
+	},
+
+	_setTileHeight: function() { //set the height from which to read tiles
+		var n = this._tileSize - 1;
+		this._h = n*(n+1)/2;
+	},
+
 	drawItemInfoCycle: function(x, y) {
-		var px=x, py=y;
-		
+		var isTile = +(this._drawTile);
+		var offsetY = isTile * Math.floor(AoeItemInfoOptions.sentenceCount/2 * ItemInfoRenderer.getSpaceY());
+		var offsetX = isTile * Math.floor(ItemRenderer.getItemWindowWidth()/2);
 		this._drawTitle(x, y);
 		y += ItemInfoRenderer.getSpaceY();
-
-		this.drawEffectRange(x, y);
+		this.drawEffectRange(x + offsetX, y + offsetY);
 		y += ItemInfoRenderer.getSpaceY();
+		if(isTile) {
+			y += ItemInfoRenderer.getSpaceY() * (AoeItemInfoOptions.sentenceCount - 1);
+		}
 	},
 	
 	getInfoPartsCount: function() {
-		return 2;
+		if(!this._drawTile) {
+			return 2;
+		}
+		return 1 + AoeItemInfoOptions.sentenceCount;
 	},
 	
 	_drawTitle: function(x, y) {
@@ -27,14 +111,35 @@ var AoeItemInfo = defineObject(BaseItemInfo,
 	},
 
 	drawEffectRange: function(x, y) {
-		var text;
+		if(!this._drawTile) {
+			this._drawEffectRangeDefault(x, y, this._typeEffect);
+			return ;
+		}
+		var h = this._h;
+		var n = this._tileSize;
+		this._drawEffectRangeTiles(x - n, y - n, this._arraySelect, n * 2, h, n)
+		arrayEffect = AoeRangeIndexArray.getRelativeArray(this._arraySelect[0][0], this._arraySelect[0][1], this._arrayEffect);
+		this._drawEffectRangeTiles(x - n, y - n, arrayEffect, 0, h, n);
+		this._tileGraphics.drawParts(x - n, y - n, n, h, n, n);
+	},
+
+	_drawEffectRangeTiles: function(x, y, array, offset, h, n) {
+		for(var i = 0, count = array.length; i < count; i++) {
+			this._tileGraphics.drawParts(
+				x + n * array[i][0],
+				y + n * array[i][1],
+				offset, h, n, n
+			);
+		}		
+	},
+
+	_drawEffectRangeDefault: function(x, y, type) {
+		var text = AoeDictionary[type].name;
 		var textui = this.getWindowTextUI();
 		var color = textui.getColor();
 		var font = textui.getFont();
-		var type = AoeParameterInterpreter.getEffectRangeType(this._item);
 		ItemInfoRenderer.drawKeyword(x, y, 'Shape');
 		x += ItemInfoRenderer.getSpaceX();
-		text = AoeDictionary[type].name;
 		text += " ";
 		TextRenderer.drawKeywordText(x, y, text, -1, color, font);
 	}
@@ -52,12 +157,9 @@ var AoeItemInfo = defineObject(BaseItemInfo,
 
 	ItemInfoWindow._isAoeItem = function(item) {
 		return (
-			item
-			&&
-			!item.isWeapon()
-			&&
-			(item.getItemType() == ItemType.CUSTOM)
-			&&
+			item &&
+			!item.isWeapon() &&
+			(item.getItemType() == ItemType.CUSTOM) &&
 			(item.getCustomKeyword() == AoeItemGetCustomKeyword())
 		);
 	};
@@ -69,7 +171,6 @@ var AoeItemInfo = defineObject(BaseItemInfo,
 			return ;
 		}
 		this._itemPartsCount = this._windowHeight/ItemInfoRenderer.getSpaceY();
-		var count;
 		var partsCount = 0;
 		this._aoeWeapon = AoeParameterInterpreter.getWeapon(item, false);
 		this._aoeWeaponArray = [];
@@ -77,12 +178,11 @@ var AoeItemInfo = defineObject(BaseItemInfo,
 			return ;
 		}
 		this._configureWeapon(this._aoeWeaponArray);
-		count = this._aoeWeaponArray.length;
-		for (i = 0; i < count; i++) {
+		for (i = 0, count = this._aoeWeaponArray.length; i < count; i++) {
 			this._aoeWeaponArray[i].setParentWindow(this);
 			partsCount += this._aoeWeaponArray[i].getItemSentenceCount(this._aoeWeapon);
 		}
-		this._windowHeight += (partsCount) * ItemInfoRenderer.getSpaceY();
+		this._windowHeight += partsCount * ItemInfoRenderer.getSpaceY();
 		this.enableWindow(true);
 	};
 

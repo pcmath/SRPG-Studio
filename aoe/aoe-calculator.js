@@ -77,12 +77,11 @@ AoeCalculator = {
 	},
 
 	getRangeMetrics: function(item) {
-		var endRange = this._getMaxCombinedDistance(
-			AoeDictionary[AoeParameterInterpreter.getEffectRangeType(item)].coordinateArray,
-			AoeDictionary[AoeParameterInterpreter.getSelectionRangeType(item)].coordinateArray);
 		rangeMetrics = StructureBuilder.buildRangeMetrics();
 		rangeMetrics.startRange = 0;
-		rangeMetrics.endRange = endRange;
+		rangeMetrics.endRange = this._getMaxCombinedDistance(
+			AoeDictionary[AoeParameterInterpreter.getEffectRangeType(item)].coordinateArray,
+			AoeDictionary[AoeParameterInterpreter.getSelectionRangeType(item)].coordinateArray);
 		return rangeMetrics;
 	},
 

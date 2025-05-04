@@ -1,11 +1,14 @@
 /*
-This part handles the creation of the AoE index array from a dictionary input
+Handles the creation of the AoE index array from a dictionary input
 Essentially, this is transforming a set of relative coordinates into map coordinates
 */
 var AoeRangeIndexArray = {
 	getEffectRangeItemIndexArray: function(x, y, item, unit) {
 		var effectRangeType = AoeParameterInterpreter.getEffectRangeType(item);
-		return this.getEffectRangeIndexArray(x, y, effectRangeType, unit.getMapX(), unit.getMapY() );
+		if(typeof(effectRangeType) === "function") {
+			return effectRangeType(x, y, item, unit);
+		}
+		return this.getEffectRangeIndexArray(x, y, effectRangeType, unit.getMapX(), unit.getMapY());
 	},
 
 	getSelectionRange: function(rangeType, unitX, unitY) {
@@ -19,6 +22,12 @@ var AoeRangeIndexArray = {
 
 	getRange: function(rangeType, x, y, direction) {
 		var coordinateArray = AoeDictionary[rangeType].coordinateArray;
+		if(typeof coordinateArray === "function") {
+			coordinateArray = coordinateArray(rangeType, x, y, direction);
+			if(!coordinateArray[0].length) {
+				return coordinateArray;
+			}
+		}
 		return this.getIndexArrayFromCoordinateArray(x, y, coordinateArray, direction);
 	},
 
@@ -65,13 +74,26 @@ var AoeRangeIndexArray = {
 		return this.directionMode.UPDOWN;
 	},
 
-	getIndexArrayFromCoordinateArray : function(x, y, xyArray, direction) {
+	getRelativeArray: function(x, y, xyArray) {
+		var array = [];
+		var direction = this.getUnitDirection(0,0,x,y);
+		var directionMode = this._getDirectionMode(direction);
+		var polarity = this._getPolarity(direction);
+		for(var i = 0, count = xyArray.length; i < count; i++) {
+			array.push([
+				x + polarity * xyArray[i][directionMode],
+				y + polarity * xyArray[i][+(!directionMode)]
+			]);
+		}
+		return array;
+	},
+
+	getIndexArrayFromCoordinateArray: function(x, y, xyArray, direction) {
 		var array = [];
 		var polarity = this._getPolarity(direction);
 		var directionMode = this._getDirectionMode(direction);
-		var count = xyArray.length
 		var index;
-		for( var i=0 ; i < count ; i++ ) {
+		for(var i = 0, count = xyArray.length; i < count; i++) {
 			index = CurrentMap.getIndex(
 				x + polarity * xyArray[i][directionMode],
 				y + polarity * xyArray[i][+(!directionMode)]
