@@ -11,29 +11,6 @@ AoeItemInfoOptions = {
 	sentenceCount: 3 // number of sentences reserved to draw the tiles
 }
 
-function addBounds(arr1, arr2) {
-	var result = [[0, 0],[0, 0]];
-	for (var i = 0; i < 2; i++) {
-		for (var j = 0; j < 2; j++) {
-			result[i][j] = arr1[i][j] + arr2[i][j];
-		}
-	}
-	return result;
-}
-
-function getCoordinateBounds(coords) {
-	var result = [[0,0],[0,0]]
-	if (!coords.length) {
-		return result;
-	}
-	for (var i = 1, count = coords.length; i < count; i++) {
-		var x = coords[i][0]; var y = coords[i][1];
-		result[0][0] = Math.min(result[0][0], x); result[1][0] = Math.max(result[1][0], x);
-		result[0][1] = Math.min(result[0][1], y); result[1][1] = Math.max(result[1][1], y);
-	}
-	return result;
-}
-
 var AoeItemInfo = defineObject(BaseItemInfo,
 {
 	_drawTile: true,
