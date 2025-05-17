@@ -7,7 +7,7 @@ Quadratic formula			n=(sqrt(1+8*h)-1)/2
 
 AoeItemInfoOptions = {
 	materialFolder: "AoeMaterial",
-	image: "til2e.png",
+	image: "tile.png",
 	sentenceCount: 3 // number of sentences reserved to draw the tiles
 }
 
