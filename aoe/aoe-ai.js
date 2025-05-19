@@ -99,6 +99,7 @@ var AoeItemAI = defineObject(BaseItemAI,
 		var unitStatus = SupportCalculator.createTotalStatus(unit);
 		var weapon = AoeCalculator.getWeapon(item, unit);
 		filter = BaseCombinationCollector._arrangeFilter(unit, filter);
+		var count = targetList.length;
 		if(count == 0) {
 			return -1;
 		}
