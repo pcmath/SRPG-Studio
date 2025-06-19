@@ -13,10 +13,35 @@ var AoeConstructor = {
 			array.push([i, 0]);
 		}
 		return array;
+	},
+	taxicabCoordinates: function(distance) {
+		var coordinates = [];
+		for (var x = -distance; x <= distance; x++) {
+			for (var y = -distance; y <= distance; y++) {
+				if (Math.abs(x) + Math.abs(y) <= distance) {
+					coordinates.push([x, y]);
+				}
+			}
+		}
+		return coordinates;
 	}
 };
 
 var AoeDictionary = {
+	"box": {
+		name: "bx",
+		coordinateArray: [
+			[1,-1],[1,0],[1,1],
+			[0,-1],[0,0],[0,1],
+			[-1,-1],[-1,0],[-1,1]
+		]
+	},
+
+	"bs": {
+		name: "",
+		coordinateArray: AoeConstructor.taxicabCoordinates(4)
+	},
+
 	"adjacent": {
 		name: "Cross",
 		coordinateArray: [[1, 0], [0, 1], [-1, 0], [0, -1]]

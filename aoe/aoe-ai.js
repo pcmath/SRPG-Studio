@@ -1,46 +1,34 @@
 ActionTargetType.AOE = "AOE";
 
-CombinationCollector.Item._makeMoveArrayCombinations = function(moveArray, selectionArray, misc) {
-	var count = moveArray.length;
-	for(var i = 0; i < count; i++) {
-		this._makePosCombination(moveArray[i], selectionArray, misc);
-	}
-};
-
 CombinationCollector.Item._makePosCombination = function(moveEntry, selectionArray, misc) {
 	var index = moveEntry.posIndex;
 	var x = CurrentMap.getX(index);
 	var y = CurrentMap.getY(index);
+	var targetX, targetY, combination;
 	var selectionIndexArray = AoeRangeIndexArray.getIndexArrayFromCoordinateArray(x, y, selectionArray, -1);
-	var count = selectionIndexArray.length;
-	for(var j = 0; j < count; j++) {
-		targetX = CurrentMap.getX(selectionIndexArray[j]);
-		targetY = CurrentMap.getY(selectionIndexArray[j]);
+	for(var j = 0, count = selectionIndexArray.length; j < count; j++) {
 		var combination = this._createAndPushCombination(misc);
 		combination.posIndex = index;
 		combination.costArray = [moveEntry];
-		combination.targetPos = {x: targetX, y: targetY};
-		//I'm not really sure this does what I want but it seems like a fair enough estimate
-		combination.rangeMetrics = {};
-		combination.rangeMetrics.startRange = Math.abs(x - targetX) + Math.abs(y - targetY);
-		combination.rangeMetrics.endRange = combination.rangeMetrics.startRange;
+		combination.targetPos = {
+			x: CurrentMap.getX(selectionIndexArray[j]),
+			y: CurrentMap.getY(selectionIndexArray[j]),
+			index: selectionIndexArray[j]
+		};
 	}
-}
-
+};
 
 CombinationCollector.Item._finishAoeCombination = function(misc, selectionArray, rangeMetrics) {
-	var i, j, indexArray, list, targetUnit, targetCount, score, combination, aggregation;
+	var indexArray, list, targetUnit, targetCount, score, combination, aggregation;
 	var unit = misc.unit;
 	var filter =  FilterControl.getReverseFilter(unit.getUnitType());
 	var filterNew = this._arrangeFilter(unit, filter);
 	var listArray = this._getTargetListArray(filterNew, misc);
-	var listCount = listArray.length;
 	var checkedPositions = [];
 	var uniqueIndexArray = [];
-	for (i = 0; i < listCount; i++) {
+	for (var i = 0, listCount = listArray.length; i < listCount; i++) {
 		list = listArray[i];
-		targetCount = list.getCount();
-		for (j = 0; j < targetCount; j++) {
+		for (var j = 0, targetCount = list.getCount(); j < targetCount; j++) {
 			targetUnit = list.getData(j);
 			if (unit === targetUnit) {
 				continue;
@@ -57,11 +45,11 @@ CombinationCollector.Item._finishAoeCombination = function(misc, selectionArray,
 	misc.rangeMetrics = rangeMetrics;
 	misc.costArray = BaseCombinationCollector._createCostArray(misc);
 	moveArray = misc.costArray;
-	moveCount = moveArray.length;
-	for(var k = 0; k < moveCount; k++) {
+	for(var k = 0, moveCount = moveArray.length; k < moveCount; k++) {
 		this._makePosCombination(moveArray[k], selectionArray, misc);
 	}
-	AoeItemAI._statusRegister = [];
+	AoeItemAI._computedArray = {};
+	AoeItemAI._damageCache = {};
 };
 
 pushUniqueValues = function(mainArray, pushedArray, checkedArray) {
@@ -72,37 +60,43 @@ pushUniqueValues = function(mainArray, pushedArray, checkedArray) {
 		checkedArray[pushedArray[i]] = true;
 		mainArray.push(pushedArray[i]);
 	}
-}
+};
 
 CombinationCollector.Item._setAoeCombination = function(misc) {
-	var filter, rangeValue, rangeType;
+	var rangeValue, rangeType;
 	var item = misc.item;
 	var rangeType = AoeParameterInterpreter.getSelectionRangeType(item);
 	var rangeMetrics = AoeCalculator.getRangeMetrics(misc.item);
 	this._finishAoeCombination(misc, AoeDictionary[rangeType].coordinateArray, rangeMetrics);
 };
 
-var AoeItemAI = defineObject(BaseItemAI,
-{
+var AoeItemAI = defineObject(BaseItemAI, {
 	getItemScore: function(unit, combination) {
 		var x = CurrentMap.getX(combination.posIndex);
 		var y = CurrentMap.getY(combination.posIndex);
+		var targetX = combination.targetPos.x;
+		var targetY = combination.targetPos.y;
+		var direction = AoeRangeIndexArray.getUnitDirection(x, y, targetX, targetY);
+		if(!this._computedArray) {
+			this._computedArray = {};
+		}
+		if(this._computedArray[direction] == null) {
+			this._computedArray[direction] = [];
+		}
+		if(this._computedArray[direction][combination.targetPos.index] != null) {
+			return this._computedArray[direction][combination.targetPos.index];
+		}
 		var item = combination.item;
 		var effectRangeType = AoeParameterInterpreter.getEffectRangeType(item);
-		var indexArray = AoeRangeIndexArray.getEffectRangeIndexArray(combination.targetPos.x, combination.targetPos.y, effectRangeType, x, y);
+		var indexArray = AoeRangeIndexArray.getEffectRangeIndexArray(targetX, targetY, effectRangeType, x, y);
 		var targetList = AoeItemDamageUse.getTargetList(indexArray, item);
 		var totalDamage = 0;
 		var score = 30;	//Base AI score gives +Hit/5 to score and bonus depending on HP% up to 10
-		var filter = FilterControl.getReverseFilter(unit.getUnitType());
 		var targetUnit, damage, targetId;
 		var enemyTarget = false;
-		var unitStatus = SupportCalculator.createTotalStatus(unit);
+		var unitStatus = SupportCalculator.createTotalStatus(null); //can't evaluate status because unit will move
 		var weapon = AoeCalculator.getWeapon(item, unit);
-		filter = BaseCombinationCollector._arrangeFilter(unit, filter);
 		var count = targetList.length;
-		if(count == 0) {
-			return -1;
-		}
 		for(var i = 0, count = targetList.length; i < count; i++) {
 			targetUnit = targetList[i];
 			targetId = targetUnit.getId();
@@ -113,11 +107,18 @@ var AoeItemAI = defineObject(BaseItemAI,
 				}
 				continue;
 			}
-			if(this._statusRegister[targetId] == null) {
-				this._statusRegister[targetId] = SupportCalculator.createTotalStatus(targetUnit);
+			if(this._damageCache[targetId] == null) {
+				this._damageCache[targetId] = AoeCalculator.calculateDamageFinal(
+					item,
+					weapon,
+					unit,
+					targetUnit,
+					unitStatus,
+					SupportCalculator.createTotalStatus(targetUnit)
+				);
 			}
-			damage = AoeCalculator.calculateDamageFinal(item, weapon, unit, targetUnit, unitStatus, this._statusRegister[targetId]);
-			if(! FilterControl.isBestUnitTypeAllowed(unit.getUnitType(), targetUnit.getUnitType(), filter)) {
+			damage = this._damageCache[targetId] = damage;
+			if(FilterControl.isReverseUnitTypeAllowed(unit, targetUnit)) {
 				totalDamage += damage;
 				enemyTarget = true;
 				score += BaseCombinationCollector._checkTargetScore(unit, targetUnit);
@@ -128,9 +129,12 @@ var AoeItemAI = defineObject(BaseItemAI,
 
 		}
 		if(!enemyTarget) { //if there are no enemy targets then don't use AOE item.
-			return -1;
+			score = -1;
 		}
-		score += Miscellaneous.convertAIValue(totalDamage);
+		else {
+			score += Miscellaneous.convertAIValue(totalDamage);
+		}
+		this._computedArray[direction][combination.targetPos.index] = score;
 		return score;
 	},
 	
