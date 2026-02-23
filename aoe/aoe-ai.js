@@ -117,7 +117,7 @@ var AoeItemAI = defineObject(BaseItemAI, {
 					SupportCalculator.createTotalStatus(targetUnit)
 				);
 			}
-			damage = this._damageCache[targetId] = damage;
+			damage = this._damageCache[targetId];
 			if(FilterControl.isReverseUnitTypeAllowed(unit, targetUnit)) {
 				totalDamage += damage;
 				enemyTarget = true;
@@ -163,3 +163,4 @@ var AoeItemAI = defineObject(BaseItemAI, {
 		return alias_setCombination.call(this, misc);
 	}
 })();
+
