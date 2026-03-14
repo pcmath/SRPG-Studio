@@ -101,8 +101,8 @@ var AoeItemTerrainUse = defineObject(BaseAoeItemUse,
 	},
 
 	_getDynamicTransformData: function(terrain, transformType) {
-		if(terrain.custom.transform && terrain.custom.transform[this._transformType]) {
-			return terrain.custom.transform[this._transformType];
+		if(terrain.custom.transform && terrain.custom.transform[transformType]) {
+			return terrain.custom.transform[transformType];
 		}
 		return null;
 	},
