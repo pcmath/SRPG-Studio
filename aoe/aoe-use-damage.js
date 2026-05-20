@@ -334,7 +334,7 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 		}
 	},
 
-	potencyArtist: {
+	potencyArtist: defineObject(PosAttackWindow, {
 		_textUi: null,
 		_statusArray: null,
 		initialize: function(unit, item, targetUnit) {
@@ -348,7 +348,7 @@ var AoeItemDamageUse = defineObject(BaseAoeItemUse,
 		},
 		draw: function(x, y, textui) {
 			this._textui = textui;
-			PosAttackWindow.drawInfoBottom.call(this, x, y - 90);
+			this.drawInfoBottom(x, y - 90);
 		}
-	}
+	})
 });
